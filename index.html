@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虛源靈流 - 核心校準介面 V3</title>
+    <style>
+        :root { --accent: #00f2ff; --bg: #080808; --card: #121212; --text: #d1d1d1; }
+        body { background: var(--bg); color: var(--text); font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .app-container { width: 95%; max-width: 650px; background: var(--card); border: 1px solid #222; border-radius: 16px; padding: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; height: 85vh; }
+        header { text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        header h1 { color: var(--accent); font-weight: 300; letter-spacing: 5px; margin: 0; font-size: 1.4rem; }
+        #display-area { flex: 1; overflow-y: auto; padding-right: 10px; margin-bottom: 20px; scrollbar-width: thin; }
+        .msg { margin-bottom: 18px; line-height: 1.6; font-size: 0.95rem; animation: fadeIn 0.4s ease; }
+        .u-msg { text-align: right; color: #777; font-style: italic; }
+        .b-msg { border-left: 3px solid var(--accent); padding-left: 15px; color: #eee; white-space: pre-wrap; }
+        .input-grp { display: flex; gap: 12px; background: #000; padding: 10px; border-radius: 10px; border: 1px solid #333; }
+        input { flex: 1; background: transparent; border: none; color: #fff; outline: none; padding: 5px 10px; font-size: 1rem; }
+        button { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 20px; border-radius: 6px; cursor: pointer; transition: 0.3s; font-weight: bold; }
+        button:hover { background: var(--accent); color: #000; }
+        .status-dot { font-size: 0.75rem; color: #444; margin-top: 10px; text-align: center; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>虛源靈流：導師校準</h1>
+    </header>
+    
+    <div id="display-area">
+        <div class="msg b-msg">系統：已載入 V3.0 協議。請輸入指令進行頻率校準或查詢私有知識庫。</div>
+    </div>
+
+    <div class="input-grp">
+        <input type="text" id="userInput" placeholder="在此輸入您的問題..." autocomplete="off">
+        <button id="sendBtn">校準</button>
+    </div>
+    
+    <div id="status" class="status-dot">連線狀態：待機中</div>
+</div>
+
+<script>
+    /**
+     * ⚠️ 重要配置：請在此填入您 GAS 部署後獲得的最新 Web App URL
+     */
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwuzghQxYkUSMBZZ5-3gdfKwRxUrM1_ra2Jz5uUwA3Umu2taRAxdUBdAmqVUWcgEyXm/exec";
+
+    const inputField = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const display = document.getElementById('display-area');
+    const status = document.getElementById('status');
+
+    // 處理傳送邏輯
+    async function handleSend() {
+        const text = inputField.value.trim();
+        if (!text) return;
+
+        // 1. 顯示使用者輸入
+        appendMsg(text, 'u-msg');
+        inputField.value = '';
+        status.innerText = "連線狀態：正在檢索私有大腦...";
+        
+        // 2. 建立載入動畫
+        const loaderId = "loader-" + Date.now();
+        appendMsg("正在同步頻率...", 'b-msg', loaderId);
+
+        try {
+            // V3 核心補丁：使用 text/plain 以避免 CORS 預檢請求
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "cors", // 確保處理 GAS 的跳轉
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ message: text })
+            });
+
+            const result = await response.json();
+            
+            // 3. 更新顯示
+            document.getElementById(loaderId).innerText = result.reply;
+            status.innerText = "連線狀態：校準完成";
+        } catch (error) {
+            document.getElementById(loaderId).innerHTML = `<span style="color:#ff6b6b;">通訊中斷：請確認您的 GAS 已更新至 V3 版本並設為「任何人」存取。</span>`;
+            status.innerText = "連線狀態：通訊異常";
+            console.error(error);
+        }
+        
+        display.scrollTop = display.scrollHeight;
+    }
+
+    function appendMsg(content, className, id = null) {
+        const div = document.createElement('div');
+        if (id) div.id = id;
+        div.className = "msg " + className;
+        div.innerText = content;
+        display.appendChild(div);
+        display.scrollTop = display.scrollHeight;
+        return div;
+    }
+
+    sendBtn.addEventListener('click', handleSend);
+    inputField.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSend(); });
+</script>
+
+</body>
+</html>
