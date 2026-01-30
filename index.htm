@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虛源靈流：全功能門戶 V4</title>
+    <style>
+        :root { --main: #00f2ff; --bg: #050505; --panel: #111; --text: #d1d1d1; --dark-gray: #1a1a1a; }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* 側邊導航欄 */
+        .sidebar { width: 220px; background: #000; border-right: 1px solid #222; display: flex; flex-direction: column; padding: 20px 0; transition: 0.3s; flex-shrink: 0; }
+        .logo { color: var(--main); text-align: center; font-weight: 300; letter-spacing: 3px; margin-bottom: 30px; padding: 0 10px; font-size: 1.2rem; }
+        .menu-item { padding: 12px 25px; cursor: pointer; color: #666; font-size: 0.9rem; transition: 0.3s; border-left: 3px solid transparent; }
+        .menu-item:hover, .menu-item.active { color: var(--main); background: rgba(0, 242, 255, 0.05); border-left-color: var(--main); }
+        
+        /* 主顯示區 */
+        .main { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at center, #111 0%, #050505 100%); position: relative; }
+        header { padding: 15px 30px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        #current-module-title { font-size: 1rem; color: var(--main); letter-spacing: 2px; font-weight: 300; }
+
+        /* 內容顯示區 */
+        #content-area { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; scroll-behavior: smooth; }
+        .msg { margin-bottom: 20px; line-height: 1.7; max-width: 85%; animation: slideIn 0.3s ease; }
+        .u-msg { align-self: flex-end; color: #888; text-align: right; border-right: 2px solid #333; padding-right: 15px; }
+        .b-msg { align-self: flex-start; border-left: 2px solid var(--main); padding-left: 15px; white-space: pre-wrap; }
+        
+        /* 宣言展示區 (靜態內容) */
+        #manifesto { display: none; }
+        .manifesto-box { border: 1px solid #333; padding: 30px; border-radius: 10px; background: rgba(0,0,0,0.5); }
+        .manifesto-box h2 { color: var(--main); font-weight: 300; }
+
+        /* 輸入區 */
+        .input-area { padding: 20px 30px; border-top: 1px solid #222; background: #000; display: flex; gap: 15px; }
+        input { flex: 1; background: var(--dark-gray); border: 1px solid #333; color: #fff; padding: 12px 20px; border-radius: 8px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--main); box-shadow: 0 0 10px rgba(0,242,255,0.1); }
+        button { background: var(--main); color: #000; border: none; padding: 0 25px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { filter: brightness(1.2); }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 捲軸美化 */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--main); }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <div class="logo">虛源靈流</div>
+    <div class="menu-item active" onclick="switchModule('declaration', '虛源宣言')">虛源宣言</div>
+    <div class="menu-item" onclick="switchModule('spectrum', '靈流光譜')">靈流光譜</div>
+    <div class="menu-item" onclick="switchModule('oracle', '答案之書')">答案之書</div>
+    <div class="menu-item" onclick="switchModule('tarot', '靈流塔羅')">靈流塔羅</div>
+    <div class="menu-item" onclick="switchModule('course', '課程介紹')">課程介紹</div>
+    <div class="menu-item" onclick="switchModule('test', '人格測試')">人格測試</div>
+    <div class="menu-item" onclick="switchModule('daily', 'Jinsource 今日建議')">今日建議</div>
+    <div class="menu-item" onclick="switchModule('calibrate', '四筆法校準')">四筆法校準</div>
+    <div class="menu-item" onclick="switchModule('contact', '聯絡我們')">聯絡我們</div>
+</nav>
+
+<div class="main">
+    <header>
+        <div id="current-module-title">虛源宣言</div>
+        <div style="font-size: 0.7rem; color: #444;">TIMEZONE: ASIA/BANGKOK</div>
+    </header>
+
+    <div id="content-area">
+        <div id="chat-container"></div>
+        <div id="manifesto">
+            <div class="manifesto-box">
+                <h2>靈流狂徒宣言</h2>
+                <p>萬物皆震動，存在即頻率。虛源靈流是一套整合量子力學、道家、佛學的高解析度意識校準系統。</p>
+                <p>我們的價值不在於提供舒適感，而在於指出邏輯盲點，協助個體找回主控權。</p>
+                <hr style="border-color: #222; margin: 20px 0;">
+                <p style="color: #666; font-size: 0.8rem;">核心理論：震動頻率決定物質形態 | 四筆法校準動態意識</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area" id="ui-input-box">
+        <input type="text" id="userInput" placeholder="輸入指令進行頻率校準..." onkeypress="if(event.key==='Enter')handleExecute()">
+        <button onclick="handleExecute()">傳送</button>
+    </div>
+</div>
+
+<script>
+    /**
+     * ⚠️ 關鍵配置：請填入您的 GAS Web App 網址
+     */
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxN2OHk6lCR6bT_C6ZENbJaFHi8NXCfDYnxVDGyb8fdzsbOH64mtaj3Vo0SjfNg7FkD/exec"; 
+    
+    let currentModule = 'declaration';
+
+    // 1. 模組切換邏輯
+    function switchModule(modId, title) {
+        currentModule = modId;
+        document.getElementById('current-module-title').innerText = title;
+        
+        // 更新 UI 狀態
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+            if(item.innerText === title) item.classList.add('active');
+        });
+
+        const chatContainer = document.getElementById('chat-container');
+        const manifesto = document.getElementById('manifesto');
+        const inputBox = document.getElementById('ui-input-box');
+
+        // 針對不同模組的 UI 切換
+        if(modId === 'declaration') {
+            chatContainer.style.display = 'none';
+            manifesto.style.display = 'block';
+            inputBox.style.display = 'none';
+        } else {
+            chatContainer.style.display = 'block';
+            manifesto.style.display = 'none';
+            inputBox.style.display = 'flex';
+            
+            // 初始載入提示
+            if(chatContainer.innerHTML === "") {
+                appendMsg(`系統：已切換至【${title}】模組。請輸入您的問題或需求。`, 'b-msg');
+            }
+        }
+    }
+
+    // 2. 核心執行邏輯
+    async function handleExecute() {
+        const input = document.getElementById('userInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        appendMsg(text, 'u-msg');
+        input.value = '';
+
+        const loaderId = "ld-" + Date.now();
+        appendMsg(`正在請求虛源大腦 [${currentModule}]...`, 'b-msg', loaderId);
+
+        try {
+            // 封裝模組上下文，讓 AI 知道現在在做什麼
+            const payload = {
+                message: text,
+                module: currentModule,
+                context: `目前的模式是：${currentModule}。請優先調用相關知識庫。`
+            };
+
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            document.getElementById(loaderId).innerText = data.reply;
+        } catch (error) {
+            document.getElementById(loaderId).innerText = "通訊異常：請確認您的 GAS 部署版本與權限。";
+            console.error(error);
+        }
+        
+        const area = document.getElementById('content-area');
+        area.scrollTop = area.scrollHeight;
+    }
+
+    function appendMsg(text, className, id = null) {
+        const container = document.getElementById('chat-container');
+        const div = document.createElement('div');
+        if(id) div.id = id;
+        div.className = "msg " + className;
+        div.innerText = text;
+        container.appendChild(div);
+        
+        const area = document.getElementById('content-area');
+        area.scrollTop = area.scrollHeight;
+        return id;
+    }
+
+    // 初始化顯示
+    switchModule('declaration', '虛源宣言');
+</script>
+
+</body>
+</html>
