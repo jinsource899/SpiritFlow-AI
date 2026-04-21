@@ -46,14 +46,14 @@
         const box = document.getElementById('scroll-content');
         box.innerHTML = "正在同步阿卡西數據...";
         if (['01_虛源宣言_Declaration', '05_內容願景_Vision'].includes(m)) {
-            const res = await fetch(URL, { method: "POST", body: JSON.stringify({ action: "getContent", folder: m }) });
+            const res = await fetch(URL + '?action=getContent&folder=' + m);
             const data = await res.json();
             box.innerHTML = `<div class="content-body">${data.reply}</div>`;
         } else if (m === 'oracle' || m === 'tarot' || m === 'daily') {
             const action = m === 'oracle' ? "getOracle" : (m === 'tarot' ? "getTarot" : "getDaily");
             box.innerHTML = `<button onclick="trigger('${action}')" style="background:var(--main); padding:20px;">◈ 感應當下頻率 ◈</button><div id="res-box"></div>`;
         } else if (m === '02_靈流光譜_Spectrum') {
-            const res = await fetch(URL, { method: "POST", body: JSON.stringify({ action: "getList" }) });
+            const res = await fetch(URL + '?action=getList');
             const data = await res.json();
             box.innerHTML = "";
             data.list.forEach(n => { box.innerHTML += `<div onclick="loadSpectrum('${n}')" style="cursor:pointer; padding:15px; border-bottom:1px solid #111;">◈ ${n}</div>`; });
@@ -61,7 +61,7 @@
     }
     async function trigger(action) {
         document.getElementById('res-box').innerHTML = "正在校準頻率...";
-        const res = await fetch(URL, { method: "POST", body: JSON.stringify({ action: action }) });
+        const res = await fetch(URL + '?action=' + action);
         const data = await res.json();
         document.getElementById('res-box').innerHTML = `<div style="border:1px solid var(--main); padding:30px; margin-top:20px;">${data.reply}</div>`;
     }
