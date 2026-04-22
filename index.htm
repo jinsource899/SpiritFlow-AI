@@ -39,133 +39,54 @@
         <div id="scroll-content"></div>
     </div>
 <script>
-    // FIX v4: Updated to latest GAS deployment
-    const URL = "https://script.google.com/macros/s/AKfycbwFlc-X9sT999pS-mSWEHenX2PkfT54MqBSwBcOLa3GFuWi1mdrVfqFtJh76ck-mFm5/exec";
-
-    // FIX v4: Added loadSpectrum() — loads a spectrum item's content
-    async function loadSpectrum(name) {
-        document.getElementById('title').innerText = '◈ ' + name;
-        const box = document.getElementById('scroll-content');
-        box.innerHTML = "正在同步阿卡西數據...";
-        try {
-            const res = await fetch(URL + '?action=getContent&folder=' + encodeURIComponent(name));
-            const data = await res.json();
-            box.innerHTML = `<div class="content-body">${(data.reply || '').replace(/\n/g, '<br>')}</div>`;
-        } catch(e) {
-            box.innerHTML = `<div class="content-body" style="color:#f55;">讀取失敗：${e.message}</div>`;
-        }
-    }
-
-    // FIX v4: Added triggerDiagnosis() for sw('test') diagnosis feature
-    async function triggerDiagnosis() {
-        const box = document.getElementById('scroll-content');
-        box.innerHTML = `<div class="content-body" style="text-align:center; padding:60px;">
-            <div style="color:var(--main); font-size:2rem; margin-bottom:30px;">命運判讀系統</div>
-            <div style="color:#888; margin-bottom:40px;">輸入你的命運代碼，揭示你的核心枷鎖與解鎖鑰</div>
-            <textarea id="diagnosis-input" rows="3" style="width:100%; max-width:400px; background:#111; border:1px solid var(--border); color:#ccc; padding:15px; font-size:1.1rem; resize:none; outline:none;" placeholder="輸入 30 位命運代碼..."></textarea>
-            <br><br>
-            <button onclick="runDiagnosis()" style="background:var(--main); color:#000; padding:15px 40px; border:none; cursor:pointer; font-size:1.1rem;">◈ 啟動判讀 ◈</button>
-            <div id="diagnosis-result" style="margin-top:30px;"></div>
-        </div>`;
-    }
-
-    async function runDiagnosis() {
-        const code = document.getElementById('diagnosis-input').value.trim().toUpperCase();
-        if (!code) { alert('請輸入命運代碼'); return; }
-        const result = document.getElementById('diagnosis-result');
-        result.innerHTML = `<div style="color:var(--main);">◈ 命運校準中...</div>`;
-        try {
-            const res = await fetch(URL + '?action=getDiagnosis&code=' + encodeURIComponent(code));
-            const data = await res.json();
-            result.innerHTML = `<div class="content-body" style="border:1px solid var(--main); padding:30px; margin-top:20px; white-space:pre-wrap;">${(data.reply || '').replace(/\n/g, '<br>')}</div>`;
-        } catch(e) {
-            result.innerHTML = `<div style="color:#f55; margin-top:20px;">判讀失敗：${e.message}</div>`;
-        }
-    }
-
+    const URL = "https://script.google.com/macros/s/AKfycbzK-DsxAjzR90k3jKbZnN3ds4F5cPpy5G1ZEM6Rin-iocIkNSaEzFl_MjSEuaj9E0Pw/exec";
     async function sw(m) {
-        // FIX v4: titleMap includes 'test'
-        const titleMap = {
-            '01_虛源宣言_Declaration': '虛源宣言',
-            '05_內容願景_Vision': '內容願景',
-            '02_靈流光譜_Spectrum': '靈流光譜',
-            'oracle': '答案之書',
-            'tarot': '靈流塔羅',
-            'daily': '今日建議',
-            'test': '命運診斷'
-        };
+        const titleMap = { '01_虛源宣言_Declaration': '虛源宣言', '05_內容願景_Vision': '內容願景', 'oracle': '答案之書', 'tarot': '靈流塔羅', 'daily': '今日建議', '02_靈流光譜_Spectrum': '靈流光譜', 'test': '命運診斷' };
         document.getElementById('title').innerText = titleMap[m] || '模組';
         const box = document.getElementById('scroll-content');
-
+        box.innerHTML = "正在同步阿卡西數據...";
         if (['01_虛源宣言_Declaration', '05_內容願景_Vision'].includes(m)) {
-            box.innerHTML = "正在同步阿卡西數據...";
-            try {
-                const res = await fetch(URL + '?action=getContent&folder=' + encodeURIComponent(m));
-                const data = await res.json();
-                // FIX v4: replace \n with <br>
-                box.innerHTML = `<div class="content-body">${(data.reply || '').replace(/\n/g, '<br>')}</div>`;
-            } catch(e) {
-                box.innerHTML = `<div class="content-body" style="color:#f55;">讀取失敗：${e.message}</div>`;
-            }
+            const res = await fetch(URL + '?action=getContent&folder=' + m);
+            const data = await res.json();
+            box.innerHTML = `<div class="content-body">${data.reply}</div>`;
         } else if (m === 'oracle' || m === 'tarot' || m === 'daily') {
             const action = m === 'oracle' ? "getOracle" : (m === 'tarot' ? "getTarot" : "getDaily");
-            box.innerHTML = `<button onclick="trigger('${action}')" style="background:var(--main); padding:20px; border:none; cursor:pointer; color:#000; font-size:1.1rem;">◈ 感應當下頻率 ◈</button><div id="res-box"></div>`;
+            box.innerHTML = `<button onclick="trigger('${action}')" style="background:var(--main); padding:20px;">◈ 感應當下頻率 ◈</button><div id="res-box"></div>`;
+         } else if (m === 'test') {
+            box.innerHTML = `
+              <div style="margin-bottom:20px; font-size:0.9rem; color:#888;">
+                輸入 30 位命盤代碼（A/B/C/D），系統將掃描您的核心命運代碼。
+              </div>
+              <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <input id="test-input" type="text" maxlength="30" placeholder="例如：ABCBADBACDDCCBADBACDDCCBADBACDDA"
+                       style="flex:1; background:#111; border:1px solid #333; color:#00f2ff; padding:12px; font-family:monospace; font-size:0.9rem;">
+                <button onclick="trigger('getTest')" style="background:var(--main); color:#000; padding:12px 20px; font-weight:bold;">◈ 命運掃描 ◈</button>
+              </div>
+              <div id="res-box"></div>
+            `;
+        
         } else if (m === '02_靈流光譜_Spectrum') {
-            box.innerHTML = "正在同步阿卡西數據...";
-            try {
-                const res = await fetch(URL + '?action=getList');
-                const data = await res.json();
-                box.innerHTML = "";
-                data.list.forEach(n => {
-                    const item = document.createElement('div');
-                    item.style.cssText = 'cursor:pointer; padding:15px; border-bottom:1px solid #111;';
-                    item.innerText = '◈ ' + n;
-                    item.onclick = () => loadSpectrum(n);
-                    box.appendChild(item);
-                });
-            } catch(e) {
-                box.innerHTML = `<div class="content-body" style="color:#f55;">讀取失敗：${e.message}</div>`;
-            }
-        } else if (m === 'test') {
-            // FIX v4: sw('test') handler
-            triggerDiagnosis();
-        }
-    }
-
-    async function trigger(action) {
-        document.getElementById('res-box').innerHTML = "<div style='padding:20px; color:var(--main);'>◈ 校準頻率中...</div>";
-        try {
-            const res = await fetch(URL + '?action=' + action);
+            const res = await fetch(URL + '?action=getList');
             const data = await res.json();
-            document.getElementById('res-box').innerHTML = `<div style="border:1px solid var(--main); padding:30px; margin-top:20px; white-space:pre-wrap;">${(data.reply || '').replace(/\n/g, '<br>')}</div>`;
-        } catch(e) {
-            document.getElementById('res-box').innerHTML = `<div style="color:#f55; padding:20px;">讀取失敗：${e.message}</div>`;
+            box.innerHTML = "";
+            data.list.forEach(n => { box.innerHTML += `<div onclick="loadSpectrum('${n}')" style="cursor:pointer; padding:15px; border-bottom:1px solid #111;">◈ ${n}</div>`; });
         }
     }
-
-    // Star canvas background
-    const canvas = document.getElementById('star-canvas');
-    const ctx = canvas.getContext('2d');
-    let stars = [];
-    function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
-    window.addEventListener('resize', resize);
-    resize();
-    for (let i = 0; i < 200; i++) {
-        stars.push({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, r: Math.random() * 1.5, speed: Math.random() * 0.5 + 0.1 });
+    async function trigger(action) {
+        document.getElementById('res-box').innerHTML = "正在校準頻率...";
+        const res = await fetch(URL + '?action=' + action);
+        const data = await res.json();
+        document.getElementById('res-box').innerHTML = `<div style="border:1px solid var(--main); padding:30px; margin-top:20px;">${data.reply}</div>`;
     }
-    function drawStars() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        stars.forEach(s => {
-            ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(0,242,255,' + (Math.random() * 0.5 + 0.3) + ')';
-            ctx.fill();
-            s.y += s.speed;
-            if (s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
-        });
-        requestAnimationFrame(drawStars);
+    
+    async function loadSpectrum(name) {
+        document.getElementById('title').innerText = name;
+        const box = document.getElementById('scroll-content');
+        box.innerHTML = '正在同步頻率...';
+        const res = await fetch(URL + '?action=getContent&folder=' + encodeURIComponent(name));
+        const data = await res.json();
+        box.innerHTML = '<div class="content-body">' + data.reply + '</div>';
     }
-    drawStars();
 
     sw('01_虛源宣言_Declaration');
 </script>
