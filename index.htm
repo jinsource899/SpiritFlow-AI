@@ -39,7 +39,7 @@
         <div id="scroll-content"></div>
     </div>
 <script>
-    const URL = "https://script.google.com/macros/s/AKfycbzK-DsxAjzR90k3jKbZnN3ds4F5cPpy5G1ZEM6Rin-iocIkNSaEzFl_MjSEuaj9E0Pw/exec";
+    const URL = "https://script.google.com/macros/s/AKfycbxuMi_XiTrK5eL6RL33mAnI6CC7QsVXWLn1mo8kq8Ja8Gwi0g2auBtD4UYatsQJnAdP/exec";
     async function sw(m) {
         const titleMap = { '01_虛源宣言_Declaration': '虛源宣言', '05_內容願景_Vision': '內容願景', 'oracle': '答案之書', 'tarot': '靈流塔羅', 'daily': '今日建議', '02_靈流光譜_Spectrum': '靈流光譜', 'test': '命運診斷' };
         document.getElementById('title').innerText = titleMap[m] || '模組';
@@ -48,7 +48,7 @@
         if (['01_虛源宣言_Declaration', '05_內容願景_Vision'].includes(m)) {
             const res = await fetch(URL + '?action=getContent&folder=' + m);
             const data = await res.json();
-            box.innerHTML = `<div class="content-body">${data.reply}</div>`;
+            box.innerHTML = `<div class="content-body">${(data.reply || "").replace(/\n/g, "<br>")}</div>`;
         } else if (m === 'oracle' || m === 'tarot' || m === 'daily') {
             const action = m === 'oracle' ? "getOracle" : (m === 'tarot' ? "getTarot" : "getDaily");
             box.innerHTML = `<button onclick="trigger('${action}')" style="background:var(--main); padding:20px;">◈ 感應當下頻率 ◈</button><div id="res-box"></div>`;
@@ -76,7 +76,7 @@
         document.getElementById('res-box').innerHTML = "正在校準頻率...";
         const res = await fetch(URL + '?action=' + action);
         const data = await res.json();
-        document.getElementById('res-box').innerHTML = `<div style="border:1px solid var(--main); padding:30px; margin-top:20px;">${data.reply}</div>`;
+        document.getElementById('res-box').innerHTML = `<div style="border:1px solid var(--main); padding:30px; margin-top:20px;">${(data.reply || '').replace(/\n/g, '<br>')}</div>`;
     }
     
     async function loadSpectrum(name) {
@@ -85,7 +85,7 @@
         box.innerHTML = '正在同步頻率...';
         const res = await fetch(URL + '?action=getContent&folder=' + encodeURIComponent(name));
         const data = await res.json();
-        box.innerHTML = '<div class="content-body">' + data.reply + '</div>';
+        box.innerHTML = '<div class="content-body">' + (data.reply || '').replace(/\n/g, '<br>') + '</div>';
     }
 
     sw('01_虛源宣言_Declaration');
